@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<!--
+https://tyablog.net/2017/04/04/three-js-text-geometry-typescript/
+
+https://threejs.org/docs/#api/en/geometries/TextGeometry
+
+フォント取得場所
+-> サンプル three.js-master\three.js-master\examples\fonts
+
+http://localhost:3000/07-TextGeometry.html
+-->
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/105/three.min.js"></script>
+  <script src="helvetiker_bold.typeface.js"></script>
+  <script>
+    // ページの読み込みを待つ
+    window.addEventListener('load', init);
+
+    function init() {
+      // サイズを指定
+      const width = 960;
+      const height = 540;
+      // レンダラーを作成
+      const renderer = new THREE.WebGLRenderer({
+        canvas: document.querySelector('#myCanvas')
+      });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(width, height);
+      // シーンを作成
+      const scene = new THREE.Scene();
+      // カメラを作成
+      const camera = new THREE.PerspectiveCamera(45, width / height);
+      camera.position.set(0, 0, +200);
+
+
+
+/*
+var loader = new THREE.FontLoader();
+loader.load( 'fonts/helvetiker_regular.typeface.json', function ( font ) {
+
+	var geometry = new THREE.TextGeometry( 'Hello three.js!', {
+		font: font,
+		size: 80,
+		height: 5,
+		curveSegments: 12,
+		bevelEnabled: true,
+		bevelThickness: 10,
+		bevelSize: 8,
+		bevelOffset: 0,
+		bevelSegments: 5
+	} );
+} );
+*/
+
+var loader = new THREE.FontLoader();
+loader.load('font/helvetiker_regular.typeface.json', function(font){
+	var textGeometry = new THREE.TextGeometry("Hello Three.js!", {
+		font: font,
+		size: 20,
+		height: 5,
+		curveSegments: 12
+	});
+	var materials = [
+		new THREE.MeshBasicMaterial( { color: Math.random() * 0xffffff, overdraw: 0.5 } ),
+		new THREE.MeshBasicMaterial( { color: 0x000000, overdraw: 0.5 } )
+	];
+	var textMesh = new THREE.Mesh(textGeometry, materials);
+	scene.add(textMesh);
+});
+
+
+
+
+
+
+      tick();
+
+      // 毎フレーム時に実行されるループイベント
+      function tick() {
+        // cubeをx軸に少しずつ回す
+        cube1.rotation.x += 0.01;
+        // cubeをy軸に少しずつ回す
+        cube1.rotation.y += 0.01;
+        renderer.render(scene, camera); // レンダリング
+        requestAnimationFrame(tick);
+      }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="myCanvas"></canvas>
+</body>
+</html>
