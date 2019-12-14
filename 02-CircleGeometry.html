@@ -1,9 +1,4 @@
 <!DOCTYPE html>
-<!--
-http://thirdjs.blog.fc2.com/blog-entry-8.html
-
-http://localhost:3000/02-cube.html
--->
 <html>
 <head>
   <meta charset="utf-8"/>
@@ -37,37 +32,37 @@ http://localhost:3000/02-cube.html
       material.wireframe=true;
 
       // 大きさと材質をセット。
-      var cube1 = new THREE.Mesh( geometry1, material );
-      var cube2 = new THREE.Mesh( geometry2, material );
-      var cube3 = new THREE.Mesh( geometry3, material );
+      var obj1 = new THREE.Mesh( geometry1, material );
+      var obj2 = new THREE.Mesh( geometry2, material );
+      var obj3 = new THREE.Mesh( geometry3, material );
 
-      cube1.position.set(-50,0,50);
-      cube2.position.set(0,0,0);
-      cube3.position.set(50,0,-50);
+      obj1.position.set(-50,0,50);
+      obj2.position.set(0,0,0);
+      obj3.position.set(50,0,-50);
       
       // sceneオブジェクトに立方体を追加
-      scene.add( cube1 );
-      scene.add( cube2 );
-      scene.add( cube3 );
+      scene.add( obj1 );
+      scene.add( obj2 );
+      scene.add( obj3 );
 
       // 影
-      cube1.castShadow = true;
-      cube2.castShadow = true;
-      cube3.castShadow = true;
+      obj1.castShadow = true;
+      obj2.castShadow = true;
+      obj3.castShadow = true;
       
 
       tick();
 
       // 毎フレーム時に実行されるループイベント
       function tick() {
-        // cubeをx軸に少しずつ回す
-        cube1.rotation.x += 0.01;
-        cube2.rotation.x += 0.01;
-        cube3.rotation.x += 0.01;
-        // cubeをy軸に少しずつ回す
-        cube1.rotation.y += 0.01;
-        cube2.rotation.y += 0.01;
-        cube3.rotation.y += 0.01;
+        // objをx軸に少しずつ回す
+        obj1.rotation.x += 0.01;
+        obj2.rotation.x += 0.01;
+        obj3.rotation.x += 0.01;
+        // objをy軸に少しずつ回す
+        obj1.rotation.y += 0.01;
+        obj2.rotation.y += 0.01;
+        obj3.rotation.y += 0.01;
         renderer.render(scene, camera); // レンダリング
         requestAnimationFrame(tick);
       }
