@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<script src='./parts/three.min.js'></script>
+<script src="./parts/ar.js"></script>
+<script>THREEx.ArToolkitContext.baseURL = './'</script>
+<body style='margin : 0px; overflow: hidden;'>
+	<script>
+	// init renderer
+	var renderer	= new THREE.WebGLRenderer({
+		antialias: true,
+		alpha: true
+	});
+	renderer.setClearColor(new THREE.Color('lightgrey'), 0);
+	renderer.setSize( 640, 480 );
+	renderer.domElement.style.position = 'absolute';
+	renderer.domElement.style.top = '0px';
+	renderer.domElement.style.left = '0px';
+	document.body.appendChild( renderer.domElement );
+
+	// array of functions for the rendering loop
+	var onRenderFcts= [];
+	// init scene and camera
+	var scene	= new THREE.Scene();
+	// Create a camera
+	var camera = new THREE.Camera();
+	scene.add(camera);
+
+	var arToolkitSource = new THREEx.ArToolkitSource({
+		sourceType : 'webcam',
+	})
+
+	arToolkitSource.init(function onReady(){
+		onResize()
+	})
+
+	window.addEventListener('resize', function(){
+		onResize()
+	})
+	function onResize(){
+		arToolkitSource.onResizeElement()
+		arToolkitSource.copyElementSizeTo(renderer.domElement)
+		if( arToolkitContext.arController !== null ){
+			arToolkitSource.copyElementSizeTo(arToolkitContext.arController.canvas)
+		}
+	}
+
+	// create atToolkitContext
+	var arToolkitContext = new THREEx.ArToolkitContext({
+		cameraParametersUrl: THREEx.ArToolkitContext.baseURL + './parts/camera_para.dat',
+		detectionMode: 'mono',
+	})
+	arToolkitContext.init(function onCompleted(){
+		camera.projectionMatrix.copy( arToolkitContext.getProjectionMatrix() );
+	})
+
+	// update artoolkit on every frame
+	onRenderFcts.push(function(){
+		if( arToolkitSource.ready === false )	return
+		arToolkitContext.update( arToolkitSource.domElement )
+		scene.visible = camera.visible
+	})
+
+	// init controls for camera
+	var markerControls = new THREEx.ArMarkerControls(arToolkitContext, camera, {
+		type : 'pattern',
+		patternUrl : THREEx.ArToolkitContext.baseURL + './parts/patt.hiro',
+		changeMatrixMode: 'cameraTransformMatrix'
+	})
+	scene.visible = false
+
+	const geometry0 = new THREE.BoxGeometry(1,0.05,1,30);
+	const geometry1 = new THREE.BoxGeometry(1,1,0.05,30);
+	const geometry2 = new THREE.BoxGeometry(1,1,0.05,30);
+	const geometry3 = new THREE.BoxGeometry(1,1,0.05,30);
+	const geometry4 = new THREE.BoxGeometry(1,1,0.05,30);
+
+	let loader = new THREE.TextureLoader();
+	let material0 = [
+		new THREE.MeshBasicMaterial({map: loader.load( 'parts/img/invisible.png' )}),
+		new THREE.MeshBasicMaterial({map: loader.load( 'parts/img/invisible.png' )}),
+		new THREE.MeshBasicMaterial({map: loader.load( 'parts/img/tex101.jpg' )}),
+		new THREE.MeshBasicMaterial({map: loader.load( 'parts/img/invisible.png' )}),
+		new THREE.MeshBasicMaterial({map: loader.load( 'parts/img/invisible.png' )}),
+		new THREE.MeshBasicMaterial({map: loader.load( 'parts/img/invisible.png' )})
+	];
+
+	let material1 = [
+		new THREE.MeshBasicMaterial({map: loader.load( 'parts/img/invisible.png' )}),
+		new THREE.MeshBasicMaterial({map: loader.load( 'parts/img/invisible.png' )}),
+		new THREE.MeshBasicMaterial({map: loader.load( 'parts/img/invisible.png' )}),
+		new THREE.MeshBasicMaterial({map: loader.load( 'parts/img/invisible.png' )}),
+		new THREE.MeshBasicMaterial({map: loader.load( 'parts/img/tex105.jpg' )}),
+		new THREE.MeshBasicMaterial({map: loader.load( 'parts/img/invisible.png' )})
+	];
+
+	// メッシュを作成
+	const mesh0 = new THREE.Mesh(geometry0, material0);
+	const mesh1 = new THREE.Mesh(geometry1, material1);
+	const mesh2 = new THREE.Mesh(geometry2, material1);
+	const mesh3 = new THREE.Mesh(geometry3, material1);
+	const mesh4 = new THREE.Mesh(geometry4, material1);
+
+	const p0 = 0.52;
+	const p1 = 0.5;
+	const p2 = 1.0;
+
+	mesh0.position.set(  0, -p2,   0);    mesh3.rotation.set( Math.PI/2, 0, 0); // bottom
+	mesh1.position.set( p0, -p1,   0);    mesh0.rotation.set( 0,Math.PI, 0);
+  	mesh2.position.set(  0, -p1,  p0);    mesh1.rotation.set( 0, 3*Math.PI/2, 0);
+	mesh3.position.set(-p0, -p1,   0);    mesh2.rotation.set( 0,Math.PI, 0);
+  	mesh4.position.set(  0, -p1, -p0);    mesh3.rotation.set( 0, Math.PI/2, 0);
+
+	// 3D空間にメッシュを追加
+	scene.add(mesh0);
+	scene.add(mesh1);
+	scene.add(mesh2);
+	scene.add(mesh3);
+	scene.add(mesh4);
+
+	onRenderFcts.push(function(){
+		renderer.render( scene, camera );
+	})
+
+	// run the rendering loop
+	var lastTimeMsec= null
+	requestAnimationFrame(function animate(nowMsec){
+		// keep looping
+		requestAnimationFrame( animate );
+		// measure time
+		lastTimeMsec	= lastTimeMsec || nowMsec-1000/60
+		var deltaMsec	= Math.min(200, nowMsec - lastTimeMsec)
+		lastTimeMsec	= nowMsec
+		// call each update function
+		onRenderFcts.forEach(function(onRenderFct){
+			onRenderFct(deltaMsec/1000, nowMsec/1000)
+		})
+	})
+
+	window.onload = function() {
+		onResize();
+	}
+	</script>
+</body>
