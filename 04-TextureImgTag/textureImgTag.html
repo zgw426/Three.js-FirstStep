@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Imgタグの画像をテクスチャにする_2</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!-- partial -->
+<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r79/three.min.js'></script>
+<!-- <script  src="./script.js"></script> -->
+
+<script>
+$(window).on("load", function() {
+  init(); //とりあえず最初のドン 
+  render();//キャンバスループ！
+});
+
+var renderer, canvas, camera;
+var texture, textContext, planeMesh;
+var textX = 0;//アニメーション用テキスト位置
+var scene = new THREE.Scene(); //シーンを作る
+
+//---//
+// Imgタグにはる画像（切り替えるので複数用意）
+let imgNo = 0;
+let imgArr = new Array();
+imgArr.push("tex001.JPG");
+imgArr.push("tex002.JPG");
+imgArr.push("tex003.JPG");
+imgArr.push("tex004.JPG");
+imgArr.push("tex005.JPG");
+imgArr.push("tex006.JPG");
+
+//---//
+
+function init() {
+  
+  //カメラ作る
+  camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.x = 40;
+  camera.position.y = 10;
+  camera.position.z = 20;
+  camera.lookAt(scene.position);
+
+  //レンダラー作る
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  //axes 便利な座標を出してくれますよ
+  var axes = new THREE.AxisHelper(20);
+  scene.add(axes);
+
+  //グリッドヘルパーがでる
+  var gridHelper = new THREE.GridHelper(10, 5);
+  scene.add(gridHelper);
+  
+  //  メッシュ作り
+  var geometry = new THREE.PlaneGeometry(6.4, 3.2, 10, 10);
+  var material = new THREE.MeshBasicMaterial({
+    map: set_texture()
+  });
+  planeMesh = new THREE.Mesh(geometry, material);
+  planeMesh.material.map.needsUpdate = true;
+  scene.add(planeMesh);
+  
+  //レンダラー追加
+  $("#stage").append(renderer.domElement);
+  renderer.render(scene, camera);
+  
+}
+
+//キャンバスのテクスチャ作り
+//文字を表示させたの返す
+function set_texture() {
+
+  //var canvas = document.createElement("img");
+  //canvas.setAttribute("id", "imgArea");
+  //canvas.setAttribute("src", imgArr[imgNo] );
+
+  var canvas = document.getElementById("imgArea");
+  canvas.src = imgArr[imgNo];
+
+  $(".hoge")[0].appendChild(canvas);
+  texture = new THREE.Texture(canvas);
+  return texture;
+
+}
+
+function render(){
+  window.requestAnimationFrame(render);
+  var canvas = document.getElementById("imgArea");
+  canvas.src = imgArr[imgNo];
+  console.log("img" + imgNo +  " = " + imgArr[imgNo]);
+  imgNo += 1;
+  if(imgNo >= imgArr.length) imgNo = 0;
+
+  planeMesh.material.map.needsUpdate = true;  
+  renderer.render(scene, camera);
+}
+
+</script>
+
+<img id="imgArea" style="display:none" />
+
+</body>
+</html>
