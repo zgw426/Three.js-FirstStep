@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--
+ソース元
+https://jsfiddle.net/f2Lommf5/4991/
+ラズパイのMJPEG-Streamerからの映像を取得しテクスチャとしてマッピング
+1秒ごとにテクスチャを更新して1FPSのパラパラ漫画のようにしてる
+テクスチャ更新ごとに、オブジェクトが消えるのがチラチラする。
+-->
+<html lang="en">
+<head>
+	<title>three.js webgl - animation - morph targets</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<link type="text/css" rel="stylesheet" href="main.css">
+</head>
+<body>
+<script src="//cdn.rawgit.com/mrdoob/three.js/master/build/three.min.js"></script>
+<script>
+let camera, scene, renderer, mesh;
+
+init();
+animate();
+
+function init() {
+    camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.01, 10 );
+    camera.position.z = 1;
+    scene = new THREE.Scene();
+	const loader = new THREE.TextureLoader();
+	//const texture1 = loader.load( '//cdn.rawgit.com/mrdoob/three.js/master/examples/textures/brick_diffuse.jpg' );
+	//const texture2 = loader.load( '//cdn.rawgit.com/mrdoob/three.js/master/examples/textures/floors/FloorsCheckerboard_S_Diffuse.jpg' );
+	const texture1 = loader.load( './imgs/tex001.jpg' );
+	//const texture2 = loader.load( './imgs/tex002.jpg' );
+    const geometry = new THREE.BoxBufferGeometry( 0.4, 0.4, 0.4 );
+    const material = new THREE.MeshBasicMaterial( { map: texture1 } );
+
+    mesh = new THREE.Mesh( geometry, material );
+    scene.add( mesh );
+    renderer = new THREE.WebGLRenderer( { antialias: true } );
+	renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild( renderer.domElement );
+		
+	setInterval( () => {	
+		let texture2 = loader.load( 'http://{{ラズパイIP}}:8090/?action=snapshot' ); // MJPEG-Streamerスナップショット
+		material.map = texture2;
+		texture1.dispose();
+		console.log("texture 111");
+	}, 1000 ); // change the texture every one second.
+
+}
+
+function animate() {
+    requestAnimationFrame( animate );
+    mesh.rotation.x += 0.01;
+   	mesh.rotation.y += 0.02;
+    renderer.render( scene, camera );
+}
+
+</script>
+</body>
+</html>
