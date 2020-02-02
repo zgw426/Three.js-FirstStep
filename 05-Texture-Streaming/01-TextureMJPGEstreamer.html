@@ -44,7 +44,6 @@ function init() {
 		let texture2 = loader.load( 'http://{{ラズパイIP}}:8090/?action=snapshot' ); // MJPEG-Streamerスナップショット
 		material.map = texture2;
 		texture1.dispose();
-		console.log("texture 111");
 	}, 1000 ); // change the texture every one second.
 
 }
