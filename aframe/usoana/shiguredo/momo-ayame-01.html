@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<!--
+ウソ穴
+時雨堂 momoのayame を利用
+Firefoxで動作したが、Chromeは動かない（videoのテクスチャが真っ黒になる）
+-->
+<html class="">
+  <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.rawgit.com/Chalarangelo/mini.css/v3.0.1/dist/mini-default.min.css">
+    <title>AR PeepHole</title>
+  </head>
+    <body style="margin: 0px 0px 0px 126.5px; overflow: hidden; width: 640px; height: 480px;" class="">
+
+      <div>
+        <p>ルームID
+        <input id="roomIdInput" type="text" value=""></input>
+        </p>
+        <p>クライアントID
+        <input id="clientIdInput" disabled type="text" value=""></input>
+        </p>
+        <button onclick="startConn();">接続</button>
+        <button onclick="disconnect();">切断</button>
+      </div>
+
+      <!--
+      <div style="float:left;">
+        <video id="remote-video" autoplay playsinline controls style="width: 400px; height: 300px; border: 1px solid black;"></video>
+      </div>
+      -->
+      
+    <script src="https://aframe.io/releases/0.8.2/aframe.min.js"></script>
+    <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/1.5.5/aframe/build/aframe-ar.js"></script>
+
+    <!-- <script src="https://aframe.io/releases/1.0.0/aframe.min.js"></script> -->
+    <script src="./hls-load-texture/hls.js@latest"></script>
+    <!-- <script src="https://jeromeetienne.github.io/AR.js/aframe/build/aframe-ar.js"></script> -->
+
+    <a-scene embedded="" arjs="trackingMethod:best; debugUIEnabled:false;" class="" canvas="" inspector="" keyboard-shortcuts="" screenshot="" vr-mode-ui="">
+        <a-assets>
+          <img id="img1" src="invisible.png" />
+          <!-- <img id="img0" src="tex001.JPG" /> -->
+          <!--
+          <video id="base_video" autoplay="" loop="true" crossorigin="anonymous" playsinline="" webkit-playsinline="" muted="muted" src="./output.m3u8"></video>
+          -->
+          <video id="remote-video" width="100" height="100" autoplay="" loop="true" crossorigin="anonymous" playsinline="" webkit-playsinline="" muted="muted"></video>
+          
+        </a-assets>
+
+        <a-marker preset="hiro" position="" rotation="" scale="" visible="" material="" arjs-anchor="" arjs-hit-testing="">
+          <!-- <a-entity geometry="primitive: box; width: 1.70; depth: 1.70;" material="src: #base_video" position="0.00 -1.50 0.00" rotation="0 0 0"></a-entity> -->
+          <a-entity geometry="primitive: box; width: 1.70; depth: 1.70;" material="src: #remote-video" position="0.00 -1.50 0.00" rotation="0 0 0"></a-entity>
+
+          <a-box position=" 1.00 -1.00 -0.15" wireframe="false" color="#843233" width="0.3" height="2.0" depth="2.0" rotation="" scale="" visible="" material="" geometry="" src=""></a-box>
+          <a-box position="-1.00 -1.00  0.15" wireframe="false" color="#0095DD" width="0.3" height="2.0" depth="2.0" rotation="" scale="" visible="" material="" geometry="" src=""></a-box>
+          <a-box position="-0.15 -1.00 -1.00" wireframe="false" color="#7899aa" width="2.0" height="2.0" depth="0.3" rotation="" scale="" visible="" material="" geometry="" src=""></a-box>
+          <a-box position=" 0.15 -1.00  1.00" wireframe="false" color="#333333" width="2.0" height="2.0" depth="0.3" rotation="" scale="" visible="" material="" geometry="" src=""></a-box>
+
+          <a-box position=" 1.30 -1.00  0.00" wireframe="false" material="src: #img1" width="0.3" height="2.0" depth="2.3" rotation="" scale="" visible="" material="" geometry="" src=""></a-box>
+          <a-box position="-1.30 -1.00  0.00" wireframe="false" material="src: #img1" width="0.3" height="2.0" depth="2.3" rotation="" scale="" visible="" material="" geometry="" src=""></a-box>
+          <a-box position="-0.00 -1.00 -1.30" wireframe="false" material="src: #img1" width="2.3" height="2.0" depth="0.3" rotation="" scale="" visible="" material="" geometry="" src=""></a-box>
+          <a-box position=" 0.00 -1.00  1.30" wireframe="false" material="src: #img1" width="2.3" height="2.0" depth="0.3" rotation="" scale="" visible="" material="" geometry="" src=""></a-box>
+
+        </a-marker>
+
+    <a-entity camera="" position="" rotation="" scale="" visible=""></a-entity>
+    <canvas class="a-canvas" data-aframe-canvas="true" width="1120" height="840" style="width: 640px; height: 480px;"></canvas>
+    <div class="a-enter-vr embedded" aframe-injected="" style="position: fixed;">
+      <button class="a-enter-vr-button" aframe-injected=""></button>
+    </div>
+    <div class="a-orientation-modal a-hidden" aframe-injected="">
+      <button aframe-injected="">Exit VR</button>
+    </div>
+    <a-entity light="" data-aframe-default-light="" aframe-injected="" position="" rotation="" scale="" visible=""></a-entity>
+    <a-entity light="" position="" data-aframe-default-light="" aframe-injected="" rotation="" scale="" visible=""></a-entity>
+  </a-scene>
+
+  <script>
+    /*
+    var video = document.getElementById('base_video');
+    if (Hls.isSupported()) {
+      var hls = new Hls();
+      hls.loadSource('./output.m3u8');
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, function () {
+        video.play();
+      });
+    }*/
+
+    var video = document.getElementById('remote-video');
+    if (Hls.isSupported()) {
+      var hls = new Hls();
+      //hls.loadSource('./output.m3u8');
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, function () {
+        video.play();
+      });
+    }
+  </script>
+
+
+
+<!-- ------------------- -->
+
+<!--
+<div>
+  <p>ルームID
+  <input id="roomIdInput" type="text" value=""></input>
+  </p>
+  <p>クライアントID
+  <input id="clientIdInput" disabled type="text" value=""></input>
+  </p>
+  <button onclick="startConn();">接続</button>
+  <button onclick="disconnect();">切断</button>
+</div>
+-->
+<!--
+<div style="float:left;">
+  <video id="remote-video" autoplay playsinline controls style="width: 400px; height: 300px; border: 1px solid black;"></video>
+</div>
+-->
+
+<script src="https://cdn.jsdelivr.net/npm/@open-ayame/ayame-web-sdk@2020.1.1/dist/ayame.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.7.0/qs.min.js"></script>
+<script src="./main.js"></script>
+<script type="text/javascript">
+  const options = Ayame.defaultOptions;
+  options.clientId = clientId ? clientId : options.clientId;
+  if (signalingKey) {
+    options.signalingKey = signalingKey;
+  }
+  options.video.direction = 'recvonly';
+  options.audio.direction = 'recvonly';
+  let conn;
+  const disconnect = () => {
+    if (conn) {
+      conn.disconnect();
+    }
+  }
+  const startConn = async () => {
+    conn = Ayame.connection(signalingUrl, roomId, options, true);
+    await conn.connect(null);
+    conn.on('open', ({authzMetadata}) => console.log(authzMetadata));
+    conn.on('disconnect', (e) => console.log(e));
+    conn.on('addstream', (e) => {
+      document.querySelector('#remote-video').srcObject = e.stream;
+    });
+  };
+  document.querySelector("#roomIdInput").value = roomId;
+  document.querySelector("#clientIdInput").value = options.clientId;
+
+</script>
+
+</body>
+</html>
