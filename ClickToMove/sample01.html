@@ -1,0 +1,288 @@
+<!--
+
+クリックされた立方体のオブジェクトを認識し、
+クリックした立方体が回転したり停止したりする。
+
+動作確認(2020/04/26)
+- Win10 Chrome (バージョン 81.0.4044.122)
+- Win10 FireFox (バージョン 75.0)
+- Win10 Microsoft Edge
+- iOS13 Safari
+- Android9 Chrome
+
+-->
+<!DOCTYPE html>
+<head>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<title>Threejs AR : Click To Move</title>
+	<!-- include three.js library -->
+	<script src='js/three.js'></script>
+	<!-- include jsartookit -->
+	<script src="jsartoolkit5/artoolkit.min.js"></script>
+	<script src="jsartoolkit5/artoolkit.api.js"></script>
+	<!-- include threex.artoolkit -->
+	<script src="threex/threex-artoolkitsource.js"></script>
+	<script src="threex/threex-artoolkitcontext.js"></script>
+	<script src="threex/threex-arbasecontrols.js"></script>
+	<script src="threex/threex-armarkercontrols.js"></script>
+	<!-- include Tween.js -->
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/three.js/86/three.min.js'></script>
+	<script src='js/OrbitControls.js'></script>
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/es6-tween/3.6.0/Tween.js'></script>	
+</head>
+
+<body style='margin : 0px; overflow: hidden; font-family: Monospace;'>
+
+<script>
+let scene, camera, renderer, clock, deltaTime, totalTime;
+let arToolkitSource, arToolkitContext;
+let markerRoot01, markerRoot2;
+let mesh01;
+let m01Flg = 1;
+let m02Flg = 1;
+let m03Flg = 0;
+
+initialize();
+animate();
+
+function initialize()
+{
+	scene = new THREE.Scene();
+	let ambientLight = new THREE.AmbientLight( 0xcccccc, 0.5 );
+	scene.add( ambientLight );
+	camera = new THREE.Camera();
+	scene.add(camera);
+	renderer = new THREE.WebGLRenderer({
+		antialias : true,
+		alpha: true
+	});
+	renderer.setClearColor(new THREE.Color('lightgrey'), 0)
+	renderer.setSize( 640, 480 );
+	renderer.domElement.style.position = 'absolute'
+	renderer.domElement.style.top = '0px'
+	renderer.domElement.style.left = '0px'
+	document.body.appendChild( renderer.domElement );
+
+	clock = new THREE.Clock();
+	deltaTime = 0;
+	totalTime = 0;
+	
+	////////////////////////////////////////////////////////////
+	// setup arToolkitSource
+	////////////////////////////////////////////////////////////
+	arToolkitSource = new THREEx.ArToolkitSource({
+		sourceType : 'webcam',
+	});
+
+	function onResize()
+	{
+		arToolkitSource.onResize()	
+		arToolkitSource.copySizeTo(renderer.domElement)	
+		if ( arToolkitContext.arController !== null )
+		{
+			arToolkitSource.copySizeTo(arToolkitContext.arController.canvas)	
+		}	
+	}
+
+	arToolkitSource.init(function onReady(){
+		onResize()
+	});
+	
+	// handle resize event
+	window.addEventListener('resize', function(){
+		onResize()
+	});
+	
+	////////////////////////////////////////////////////////////
+	// setup arToolkitContext
+	////////////////////////////////////////////////////////////	
+
+	// create atToolkitContext
+	arToolkitContext = new THREEx.ArToolkitContext({
+		cameraParametersUrl: 'data/camera_para.dat',
+		detectionMode: 'mono'
+	});
+	
+	// copy projection matrix to camera when initialization complete
+	arToolkitContext.init( function onCompleted(){
+		camera.projectionMatrix.copy( arToolkitContext.getProjectionMatrix() );
+	});
+
+	////////////////////////////////////////////////////////////
+	// setup markerRoots
+	////////////////////////////////////////////////////////////
+
+	// build markerControls
+	markerRoot01 = new THREE.Group();
+
+	scene.add(markerRoot01);
+	let markerControls01 = new THREEx.ArMarkerControls(arToolkitContext, markerRoot01, {
+		type: 'pattern', patternUrl: "data/hiro.patt",
+	})
+
+	//-- ↓ 立方体1つ目 ↓ ---------------------------------//
+	let geometry01	= new THREE.CubeGeometry(1,1,1);
+	let material01 = [
+		new THREE.MeshLambertMaterial({color: 0xE9546B,opacity: 0.3,transparent: true,side: THREE.DoubleSide}), // right
+		new THREE.MeshLambertMaterial({color: 0xE9546B,opacity: 0.4,transparent: true,side: THREE.DoubleSide}), // left
+		new THREE.MeshLambertMaterial({color: 0x00A95F,opacity: 0.5,transparent: true,side: THREE.DoubleSide}), // front
+		new THREE.MeshLambertMaterial({color: 0x00A95F,opacity: 0.6,transparent: true,side: THREE.DoubleSide}), // back
+		new THREE.MeshLambertMaterial({color: 0x187FC4,opacity: 0.7,transparent: true,side: THREE.DoubleSide}), // top
+		new THREE.MeshLambertMaterial({color: 0x187FC4,opacity: 0.8,transparent: true,side: THREE.DoubleSide}), // bottom
+	];
+	mesh01 = new THREE.Mesh( geometry01, material01 );
+	mesh01.position.y = 0.5;
+	mesh01.name = "OBJECT001";
+	markerRoot01.add( mesh01 );
+	//-- ↑ 立方体1つ目 ↑ ---------------------------------//
+
+	//-- ↓ 立方体2つ目 ↓ ---------------------------------//
+	let geometry02	= new THREE.CubeGeometry(1,1,1);
+	let material02	= new THREE.MeshNormalMaterial({
+		transparent: true,
+		opacity: 0.5,
+		side: THREE.DoubleSide
+	});
+	mesh02 = new THREE.Mesh( geometry02, material02 );
+	mesh02.position.x = 1.5;
+	mesh02.position.y = 0.5;
+	mesh02.position.z = 1.5;
+	mesh02.name = "OBJECT002";
+	markerRoot01.add( mesh02 );
+	//-- ↑ 立方体2つ目 ↑ ---------------------------------//
+
+	//-- ↓ 立方体3つ目 ↓ ---------------------------------//
+	let geometry03	= new THREE.CubeGeometry(1,1,1);
+	let material03	= new THREE.MeshNormalMaterial({
+		transparent: true,
+		opacity: 0.5,
+		side: THREE.DoubleSide
+	});
+	mesh03 = new THREE.Mesh( geometry03, material03 );
+	mesh03.position.x = -1.5;
+	mesh03.position.y = 0.5;
+	mesh03.position.z = -1.5;
+	mesh03.name = "OBJECT003";
+	markerRoot01.add( mesh03 );
+	//-- ↑ 立方体3つ目 ↑ ---------------------------------//
+}
+
+
+function update()
+{
+	if( arToolkitSource.ready !== false ) arToolkitContext.update( arToolkitSource.domElement );
+	if( m01Flg != 1){
+		mesh01.rotation.x += 0.1
+	}
+	if( m02Flg != 1){
+		mesh02.rotation.y += 0.1
+	}
+}
+
+
+function render()
+{
+	renderer.render( scene, camera );
+}
+
+function animate()
+{
+	requestAnimationFrame(animate);
+	deltaTime = clock.getDelta();
+	//totalTime += deltaTime;
+	update();
+	render();
+}
+
+//===================================================================
+// マウスダウン（タッチ）によるピッキング処理
+//===================================================================
+window.addEventListener("mousedown", function(ret) {
+  let mouseX = ret.clientX;                           // マウスのx座標
+  let mouseY = ret.clientY;                           // マウスのy座標
+  //console.log(mouseX + " : " + mouseY);
+  mouseX =  (mouseX / window.innerWidth)  * 2 - 1;    // -1 ～ +1 に正規化されたx座標
+  mouseY = -(mouseY / window.innerHeight) * 2 + 1;    // -1 ～ +1 に正規化されたy座標
+  let pos = new THREE.Vector3(mouseX, mouseY, 1);     // マウスベクトル
+  pos.unproject(camera);                              // スクリーン座標系をカメラ座標系に変換
+  // レイキャスタを作成（始点, 向きのベクトル）
+  let ray = new THREE.Raycaster(camera.position, pos.sub(camera.position).normalize());
+  let obj = ray.intersectObjects(scene.children, true);   // レイと交差したオブジェクトの取得
+  if(obj.length > 0) {                                // 交差したオブジェクトがあれば
+	picked(obj[0].object.name);                       // ピックされた対象に応じた処理を実行
+	console.log("debug 001");
+  }
+  console.log("-----");
+});
+
+// ピックされた対象に応じた処理
+function picked(objName) {
+  console.log( "objName = " + objName);
+  switch(objName) {
+    case "OBJECT001":
+	  console.log("OBJECT001 hit");
+	  m01Flg = -1 * m01Flg;
+	  break;
+	case "OBJECT002":
+	  console.log("OBJECT002 hit");
+	  m02Flg = -1 * m02Flg;
+	  break;
+	case "OBJECT003":
+	  console.log("OBJECT003 hit");
+	  if( m03Flg == 0){ m03Flg = 1; }else{ m03Flg = -1 * m03Flg; }
+	  break;
+    default:
+      break;
+  }
+}
+
+//===================================================================
+// TWEEN
+//===================================================================
+let cube_size = 1; // cubeのサイズ
+let cube_count = 1; // cubeの配置数
+let grid_count = 10; // グリッドの分割数
+let interval = 1000; // 移動アニメーションの間隔
+let duration = 500; // 1回の移動時間
+let stop_rate = 0; // 移動しない確率
+let cube_half = cube_size / 2;
+
+TWEEN.autoPlay(true);
+let next_move = function () {
+	if(m03Flg != 0){
+		let origin_pos = mesh03.position.clone();
+		let origin_quaternion = mesh03.quaternion.clone();
+		let move_axis = 'x';
+		let move_offset = cube_size;
+		let from_param = { x: 0 }; // tween開始時の値
+		let to_param   = { x: 1 }; // tween終了時の値
+		let duration = 500; // 単位はミリ秒
+		let tween = new TWEEN.Tween(from_param)
+			.to(to_param, duration)
+			.easing(TWEEN.Easing.Linear)
+			.on('update', function (_a) {
+				let x = _a.x;
+				let r = cube_half * Math.sqrt(2); // 中心の回転半径
+				let center_angle = 45 + (90 * x); // 現在の中心位置の角度（移動開始時は45°）
+				let center_rad = center_angle * Math.PI / 180; // 角度をラジアンに変換
+				let current_height = Math.sin(center_rad) * r - cube_half; // 移動中のcube中心の高さ
+				let current_move = (cube_half - Math.cos(center_rad) * r) * move_offset; // 移動中のcube中心の位置
+				// 移動前のpositionを基準に計算
+				mesh03.position[move_axis] = origin_pos[move_axis] + current_move;
+				mesh03.position.y = origin_pos.y + current_height;
+				let axis = new THREE.Vector3(0, 0, -1); // 回転軸
+				let new_q = origin_quaternion.clone();
+				let target = new THREE.Quaternion();
+				let rad = (Math.PI / 2) * x;
+				target.setFromAxisAngle(axis, rad);
+				new_q.multiply(target);
+				mesh03.quaternion.copy(new_q);
+			});
+		tween.start();
+	}
+};
+setInterval(next_move, interval);
+</script>
+</body>
+</html>
